@@ -1,0 +1,33 @@
+import pool from "../../../config/db.js"
+export const createUser = async(name,email,vehicle_number,licence_hash,vehicle_type,password_hash,phone_number,image_url)=>
+
+{
+    try{
+    const result = await pool.query(`INSERT INTO cab_drivers(name,email,vehicle_number,licence_number,vehicle_type,password_hash,phone_number,image_url) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id,name,email,vehicle_number,vehicle_type,phone_number,image_url,created_at`,[name,email,vehicle_number,licence_hash,vehicle_type,password_hash,phone_number,image_url]);
+    return result.rows[0]??null
+    }
+    catch(error)
+    {
+        if(error.code === "23505")
+        {
+            const duplicateEmail = new Error("Email is already registered");
+
+            duplicateEmail.statusCode = 409
+
+            throw duplicateEmail
+        }
+        throw error;
+    }
+}
+export const getUserByEmail = async(email)=>
+{
+    const result = await pool.query(`SELECT id,name,email,password_hash,licence_number FROM cab_drivers WHERE email = $1 LIMIT 1`,[email]);
+    return result.rows[0]
+}
+
+export const getUser = async()=>
+{
+   const result = await pool.query(`SELECT id,name,email,image_url,created_at FROM cab_drivers`);
+   return result.rows;
+}
+
