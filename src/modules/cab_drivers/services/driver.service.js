@@ -1,10 +1,9 @@
-import { createUser,getUserByEmail} from "../models/user.model.js";
+import { createUser,getUserByEmail} from "../models/driver.model.js";
 import bcrypt  from "bcrypt";
 import jwt from  "jsonwebtoken"
-export const registerUser = async()=>
+export const registerUser = async({name,email,vehicle_number,licence_number,vehicle_type,password,phone_number,image_url})=>
 {
-    
-    const{name,email,vehicle_number,licence_number,vehicle_type,password,phone_number,image_url}=req.body;
+
    if(!name||!email||!vehicle_number||!licence_number||!vehicle_type||!password||!phone_number)
    {
     const error = new Error("all fields are required");
@@ -25,9 +24,12 @@ export const registerUser = async()=>
        error.statusCode = 400;
        throw error;
     }
+    email = email.trim().toLowerCase();
      const existingemail = await getUserByEmail(email);
     if(existingemail)
     {
+        console.log("Email entered:", JSON.stringify(email));
+console.log("Existing user:", existingemail);
         console.log("email is alraedy registered");
        const error = new Error("Email is already registered");
        error.statusCode = 409;
@@ -42,26 +44,26 @@ export const registerUser = async()=>
     }
     const password_hash = await bcrypt.hash(password,10);
     const licence_hash = await bcrypt.hash(licence_number,10)
+    const normalizedVehicleType = vehicle_type.trim().toUpperCase();
     const user = await createUser(
-        name,
-        email,
-        vehicle_number,
-        licence_number,
-        vehicle_type,
-        password_hash,
-        licence_hash,
-        phone_number,
-        image_url ?? null
+       name,
+      email,
+      vehicle_number,
+      licence_hash,
+      normalizedVehicleType,
+     password_hash,
+      phone_number,
+      image_url ?? null
     );
     
     return user
    
 }
-export const loginUser = async()=>
+export const loginUser = async({email,password,licence_number})=>
 {
     
-   
-        const{email,password,licence_number}=req.body;
+       
+       
         if(!email||!password||!licence_number)
         {
             const error = new Error("Unfilled credentials");
@@ -73,24 +75,30 @@ export const loginUser = async()=>
         {
             const error = new Error("Email is not found");
             error.statusCode = 400;
-            return error;
+            throw error;
         }
         const comparepassword = await bcrypt.compare(password,user.password_hash);
         if(!comparepassword)
         {
             const error = new Error("invalid credentials");
             error.statusCode = 400;
-            return error;
+            throw error;
         }
-        const comaparelicence = await bcrypt.compare(licence_number,user.licence_number);
+        const comaparelicence = await bcrypt.compare(licence_number,user.licence_hash);
         if(!comaparelicence)
         {
             const error = new Error("invalid credentials");
             error.statusCode =  400;
             throw error;
         }
+         if (!process.env.JWT_SECRET || !process.env.REFRESH_SECRET) {
+        throw new Error("JWT secrets are missing from environment variables");
+    }
+
          const accesstoken =  jwt.sign({userId:user.id,userName:user.name},process.env.JWT_SECRET,{expiresIn:"1h"})
             const refreshtoken = jwt.sign({userId:user.id,userName:user.name},process.env.REFRESH_SECRET,{expiresIn:"2d"})
+  console.log("Access token created:", Boolean(accesstoken));
+    console.log("Refresh token created:", Boolean(refreshtoken));
 
            return {user,accesstoken,refreshtoken}
        
