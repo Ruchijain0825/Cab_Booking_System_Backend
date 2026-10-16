@@ -68,4 +68,26 @@ export const getUser = async()=>
    const result = await pool.query(`SELECT id,name,email,image_url,created_at FROM cab_drivers`);
    return result.rows;
 }
+export const getDriverAvailability = async (driverId) => {
+  const result = await pool.query(
+    `SELECT is_online
+     FROM cab_drivers
+     WHERE id = $1`,
+    [driverId]
+  );
+
+  return result.rows[0] ?? null;
+};
+
+export const updateDriverAvailability = async (driverId, isOnline) => {
+  const result = await pool.query(
+    `UPDATE cab_drivers
+     SET is_online = $1
+     WHERE id = $2
+     RETURNING is_online`,
+    [isOnline, driverId]
+  );
+
+  return result.rows[0] ?? null;
+};
 

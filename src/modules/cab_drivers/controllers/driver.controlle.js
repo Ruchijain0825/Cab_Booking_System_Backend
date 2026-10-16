@@ -1,4 +1,5 @@
-import {registerUser,loginUser} from "../services/driver.service.js"
+import {registerUser,loginUser,getAvailability,
+  changeAvailability,} from "../services/driver.service.js"
 export const registerController = async(req,res)=>
 {
     
@@ -50,3 +51,36 @@ export const loginController = async(req,res)=>
         return res.status(error.statusCode||500).json({success:false,message:error.message})
     }
 }
+export const getAvailabilityController = async (req, res, next) => {
+  try {
+    const driver = await getAvailability(req.user.userId);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        is_online: driver.is_online,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateAvailabilityController = async (req, res, next) => {
+  try {
+    const driver = await changeAvailability(
+      req.user.userId,
+      req.body.isOnline
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Availability updated successfully",
+      data: {
+        is_online: driver.is_online,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

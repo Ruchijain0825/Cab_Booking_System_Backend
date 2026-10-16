@@ -1,4 +1,5 @@
-import { createUser,getUserByEmail} from "../models/driver.model.js";
+import { createUser,getUserByEmail, getDriverAvailability,
+  updateDriverAvailability,} from "../models/driver.model.js";
 import bcrypt  from "bcrypt";
 import jwt from  "jsonwebtoken"
 export const registerUser = async({name,email,vehicle_number,licence_number,vehicle_type,password,phone_number,image_url})=>
@@ -105,3 +106,26 @@ export const loginUser = async({email,password,licence_number})=>
     
      
 }
+export const getAvailability = async (driverId) => {
+  const driver = await getDriverAvailability(driverId);
+
+  if (!driver) {
+    throw new Error("Driver not found");
+  }
+
+  return driver;
+};
+
+export const changeAvailability = async (driverId, isOnline) => {
+  if (typeof isOnline !== "boolean") {
+    throw new Error("isOnline must be a boolean");
+  }
+
+  const driver = await updateDriverAvailability(driverId, isOnline);
+
+  if (!driver) {
+    throw new Error("Driver not found");
+  }
+
+  return driver;
+};
