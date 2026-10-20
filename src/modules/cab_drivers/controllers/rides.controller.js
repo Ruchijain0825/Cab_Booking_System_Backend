@@ -1,5 +1,6 @@
 
-import { getPendingRideRequestsService, acceptRideRequestService, declineRideRequestService } from "../services/ride.service.js";
+import { getPendingRideRequestsService, acceptRideRequestService, declineRideRequestService ,startRideService,
+  completeRideService,} from "../services/ride.service.js";
 
 export const getPendingRideRequestsController = async (req, res, next) => {
   try {
@@ -34,6 +35,53 @@ export const declineRideRequestController = async (req, res, next) => {
 
     const result = await declineRideRequestService(rideId, driverId);
     return res.status(200).json({ success: true, message: "Ride request declined successfully", data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+export const startRideController = async (req, res, next) => {
+  try {
+    const driverId = req.user?.userId;
+    const { rideId } = req.params;
+
+    if (!driverId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: Driver not found",
+      });
+    }
+
+    const ride = await startRideService(rideId, driverId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Ride started successfully",
+      data: ride,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const completeRideController = async (req, res, next) => {
+  try {
+    const driverId = req.user?.userId;
+    const { rideId } = req.params;
+
+    if (!driverId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: Driver not found",
+      });
+    }
+
+    const ride = await completeRideService(rideId, driverId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Ride completed successfully",
+      data: ride,
+    });
   } catch (error) {
     next(error);
   }

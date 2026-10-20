@@ -14,19 +14,18 @@ export const getPendingRideRequests = async (driverId) => {
       r.status,
       r.created_at
     FROM public.rides r
-    JOIN public.cab_drivers d ON d.id = r.driver_id
-    WHERE d.id = $1
+    JOIN public.cab_drivers d
+      ON d.id = r.driver_id
+    WHERE r.driver_id = $1
       AND d.is_online = TRUE
-      AND r.status = 'requested'
-      AND r.driver_id IS NOT NULL
+      AND LOWER(r.status) = 'requested'
     ORDER BY r.created_at DESC
-    LIMIT 20;
+    LIMIT 20
   `;
 
   const { rows } = await pool.query(query, [driverId]);
   return rows;
 };
-
 
 export const acceptRideRequest = async (rideId, driverId) => {
   const query = `
@@ -58,6 +57,33 @@ export const declineRideRequest = async (rideId, driverId) => {
       AND d.is_online = TRUE
     ON CONFLICT (ride_id, driver_id) DO NOTHING
     RETURNING ride_id, driver_id, declined_at;
+  `;
+
+  const { rows } = await pool.query(query, [rideId, driverId]);
+  return rows[0] ?? null;
+};
+export const startRide = async (rideId, driverId) => {
+  const query = `
+    UPDATE public.rides
+    SET status = 'in_progress'
+    WHERE id = $1
+      AND driver_id = $2
+      AND LOWER(status) = 'accepted'
+    RETURNING *;
+  `;
+
+  const { rows } = await pool.query(query, [rideId, driverId]);
+  return rows[0] ?? null;
+};
+
+export const completeRide = async (rideId, driverId) => {
+  const query = `
+    UPDATE public.rides
+    SET status = 'completed'
+    WHERE id = $1
+      AND driver_id = $2
+      AND LOWER(status) = 'in_progress'
+    RETURNING *;
   `;
 
   const { rows } = await pool.query(query, [rideId, driverId]);

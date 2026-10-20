@@ -1,5 +1,6 @@
 
-import { getPendingRideRequests, acceptRideRequest, declineRideRequest } from "../models/riderequest.model.js";
+import { getPendingRideRequests, acceptRideRequest, declineRideRequest,startRide,
+  completeRide, } from "../models/riderequest.model.js";
 
 export const getPendingRideRequestsService = async (driverId) => {
   if (!driverId) {
@@ -43,4 +44,43 @@ export const declineRideRequestService = async (rideId, driverId) => {
   }
 
   return result;
+};
+export const startRideService = async (rideId, driverId) => {
+  if (!rideId || !driverId) {
+    const error = new Error("Ride ID and Driver ID are required");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const ride = await startRide(rideId, driverId);
+
+  if (!ride) {
+    const error = new Error(
+      "Ride not found, not assigned to this driver, or not accepted"
+    );
+    error.statusCode = 409;
+    throw error;
+  }
+
+  return ride;
+};
+
+export const completeRideService = async (rideId, driverId) => {
+  if (!rideId || !driverId) {
+    const error = new Error("Ride ID and Driver ID are required");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const ride = await completeRide(rideId, driverId);
+
+  if (!ride) {
+    const error = new Error(
+      "Ride not found, not assigned to this driver, or not in progress"
+    );
+    error.statusCode = 409;
+    throw error;
+  }
+
+  return ride;
 };

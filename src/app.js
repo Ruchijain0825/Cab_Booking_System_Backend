@@ -10,8 +10,11 @@ import rideHistoryRoute from "./modules/cab_drivers/routes/ridehostory.route.js"
 import earningsRoute from "./modules/cab_drivers/routes/earning.route.js";
 import dailyEarningsRoute from "./modules/cab_drivers/routes/dailyearning.route.js";
 import userDashboardRoute from "./modules/cab_users/routes/user.dashboard.route.js";
+import paymentRoutes from "./modules/payment/routes/payment.route.js";
+import stripeWebhookRoutes from "./modules/payment/routes/stripe-webhook.route.js";
 
 import { errorMiddleware } from "./middlewares/error.middleware.js";
+
 
 const app = express();
 
@@ -26,6 +29,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(helmet());
+app.use("/api/payments/webhook", stripeWebhookRoutes);
 app.use(express.json());
 
 // Health check
@@ -54,6 +58,7 @@ app.use("/api/rides", rideRoute);
 // Ride history: mount only if rideHistoryRoute defines "/" and "/:rideId"
 app.use("/api/rides/history", rideHistoryRoute);
 app.use("/api/user", userDashboardRoute);
+app.use("/api/payments", paymentRoutes);
 
 // Error handling middleware should be last
 app.use(errorMiddleware);

@@ -125,46 +125,29 @@ export const getRideForChatModel = async (rideId) => {
 // 7. Save a chat message
 // 7. Save a chat message
 
+
+
 export const createRideMessageModel = async ({
   rideId,
   senderType,
   senderId,
   message,
 }) => {
-  console.log("CHAT MESSAGE DEBUG:", {
-  rideId,
-  senderType,
-  senderId,
-  message,
-});
   const result = await pool.query(
-    
     `INSERT INTO public.ride_messages (
        ride_id,
        sender_type,
        sender_id,
        message
      )
-     SELECT
-       r.id,
-       $2,
-       CASE
-         WHEN $2 = 'USER' THEN r.rider_id
-         WHEN $2 = 'DRIVER' THEN r.driver_id
-       END,
-       $4
-     FROM public.rides r
-     WHERE r.id = $1
-     RETURNING *`,
+     VALUES ($1, $2, $3, $4)
+     RETURNING id, ride_id, sender_type, sender_id, message, created_at`,
     [rideId, senderType, senderId, message]
   );
 
-  if (!result.rows[0]) {
-    throw new Error("Ride not found while saving message");
-  }
-
   return result.rows[0];
 };
+
 // 8. Get messages for a ride
 export const getRideMessagesModel = async (rideId) => {
   const result = await pool.query(
