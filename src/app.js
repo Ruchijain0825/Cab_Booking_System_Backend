@@ -19,7 +19,7 @@ import { errorMiddleware } from "./middlewares/error.middleware.js";
 const app = express();
 
 // Middleware
-import cors from "cors";
+
 
 const allowedOrigins = [
   "https://cab-booking-system-frontend-opal.vercel.app",
