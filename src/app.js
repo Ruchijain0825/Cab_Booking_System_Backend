@@ -19,15 +19,21 @@ import { errorMiddleware } from "./middlewares/error.middleware.js";
 const app = express();
 
 // Middleware
+import cors from "cors";
+
 const allowedOrigins = [
+  "https://cab-booking-system-frontend-opal.vercel.app",
   "http://localhost:5173",
-  "http://localhost:5174",
 ];
 
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(helmet());
 app.use("/api/payments/webhook", stripeWebhookRoutes);
 app.use(express.json());
